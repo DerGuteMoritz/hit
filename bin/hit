@@ -5,10 +5,10 @@ set -e -o pipefail
 docs="
 Available commands: 
 
-  init [host]
-  push [host]
-  up
-  status
+   init [host]   Initialize a host
+   push [host]   Push master branch to all known hosts or the given host
+   up            Switch to local branch and synchronize it with the master branch
+   status        Show changed known files
 "
 
 function push_to_host {
