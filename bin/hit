@@ -1,0 +1,58 @@
+#!/bin/bash
+
+set -e
+
+docs=$(cat <<'EOD'
+
+Available commands: 
+
+  init [host]
+  push
+  up
+  status
+
+EOD
+)
+
+
+(
+    cd $HOME
+
+    case "$1" in
+	init)
+	    echo "Initializing $2"
+	    git remote add "host/$2" "ssh://$2/~/"
+	    ssh "$2" "git init-db"
+	    git push "host/$2" master
+	    ssh "$2" "git branch local && git checkout local"
+
+	    ;;
+
+	push)
+	    for remote in `git remote`; do
+		host=`echo $remote | sed 's/^host\///'`
+		echo "Pushing to $host"
+		git push "$remote" master
+		ssh "$host" "hit up"
+		echo
+	    done
+
+	    ;;
+
+	up)
+	    git checkout local
+	    git rebase master
+
+	    ;;
+
+	status|st)
+	    git status -uno
+
+	    ;;
+	
+	*)
+	    echo -e "$docs\n"
+	    
+	    ;;
+    esac
+)
