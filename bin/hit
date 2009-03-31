@@ -3,15 +3,20 @@
 set -e -o pipefail
 
 docs="
-
 Available commands: 
 
   init [host]
-  push
+  push [host]
   up
   status
-
 "
+
+function push_to_host {
+    echo "Pushing to $1"
+    git push "host/$1" master
+    ssh -- "$1" "git checkout local && git rebase master"
+}
+
 
 cd -- "$HOME"
 
@@ -26,13 +31,14 @@ case "$1" in
 	;;
 
     push)
-	for remote in `git remote`; do
-	    host=`echo $remote | sed 's/^host\///'`
-	    echo "Pushing to $host"
-	    git push "$remote" master
-	    ssh -- "$host" "git checkout local && git rebase master"
-	    echo
-	done
+	if [ -n "$2" ]; then
+	    push_to_host "$2"
+	else
+	    for host in `git remote | sed 's/^host\///'`; do
+		push_to_host "$host" || true
+		echo
+	    done
+	fi
 
 	;;
 
@@ -52,3 +58,4 @@ case "$1" in
 	
 	;;
 esac
+
